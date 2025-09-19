@@ -379,7 +379,12 @@
             try {
                 renderCategoryButtons();
                 renderTemplates();
-                document.getElementById('loading').classList.add('hidden');
+                
+                // loading要素の存在確認
+                const loadingElement = document.getElementById('loading');
+                if (loadingElement) {
+                    loadingElement.classList.add('hidden');
+                }
             } catch (renderError) {
                 console.error('レンダリングエラー:', renderError);
                 showError('アプリの初期化に失敗しました。');
@@ -535,8 +540,14 @@
         // エラー表示
         function showError(message) {
             const container = document.getElementById('templatesContainer');
-            container.innerHTML = `<div class="error">${message}</div>`;
-            document.getElementById('loading').classList.add('hidden');
+            if (container) {
+                container.innerHTML = `<div class="error">${message}</div>`;
+            }
+            
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement) {
+                loadingElement.classList.add('hidden');
+            }
         }
 
         // HTMLエスケープ/アンエスケープ

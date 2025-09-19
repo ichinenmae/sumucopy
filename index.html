@@ -75,17 +75,27 @@
             transform: scale(0.95);
         }
 
-        .category-btn.active {
-            background-color: #4caf50;
-            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
-        }
-
+        /* アクティブ状態はそのままの色、非アクティブは彩度を下げる */
+        .category-all { background-color: #4caf50; }
+        .category-all:not(.active) { background-color: #a5d6a7; }
+        
         .category-arrival { background-color: #00C851; }
+        .category-arrival:not(.active) { background-color: #81c784; }
+        
         .category-delay { background-color: #DC143C; }
+        .category-delay:not(.active) { background-color: #e57373; }
+        
         .category-contact { background-color: #FF6B6B; }
+        .category-contact:not(.active) { background-color: #ffab91; }
+        
         .category-pickup { background-color: #FF8C00; }
+        .category-pickup:not(.active) { background-color: #ffcc80; }
+        
         .category-delivery { background-color: #00BFFF; }
+        .category-delivery:not(.active) { background-color: #81d4fa; }
+        
         .category-problem { background-color: #9C27B0; }
+        .category-problem:not(.active) { background-color: #ce93d8; }
 
         /* 定型文リスト */
         .templates-container {
@@ -100,8 +110,17 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 15px;
             padding: 20px;
-            border-left: 4px solid #4caf50;
+            border-left: 4px solid #4caf50; /* デフォルト色、JavaScriptで動的に変更 */
         }
+
+        /* カテゴリ別の左ボーダー色 */
+        .template-item.category-all { border-left-color: #4caf50; }
+        .template-item.category-arrival { border-left-color: #00C851; }
+        .template-item.category-delay { border-left-color: #DC143C; }
+        .template-item.category-contact { border-left-color: #FF6B6B; }
+        .template-item.category-pickup { border-left-color: #FF8C00; }
+        .template-item.category-delivery { border-left-color: #00BFFF; }
+        .template-item.category-problem { border-left-color: #9C27B0; }
 
         .template-content {
             margin-bottom: 15px;
@@ -119,11 +138,21 @@
 
         .template-category {
             font-size: 0.8em;
-            color: #666;
-            background-color: #f0f0f0;
-            padding: 4px 8px;
-            border-radius: 4px;
+            color: white; /* 白文字に変更 */
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 12px;
+            display: inline-block;
         }
+
+        /* カテゴリ表記の背景色をメニューと統一 */
+        .template-category.category-all { background-color: #4caf50; }
+        .template-category.category-arrival { background-color: #00C851; }
+        .template-category.category-delay { background-color: #DC143C; }
+        .template-category.category-contact { background-color: #FF6B6B; }
+        .template-category.category-pickup { background-color: #FF8C00; }
+        .template-category.category-delivery { background-color: #00BFFF; }
+        .template-category.category-problem { background-color: #9C27B0; }
 
         .copy-btn {
             padding: 12px 24px;
@@ -309,7 +338,7 @@
 
         // カテゴリ設定
         const categoryConfig = {
-            'all': { name: '全て', class: 'category-btn' },
+            'all': { name: '全て', class: 'category-all' },
             'arrival': { name: '到着連絡', class: 'category-arrival' },
             'delay': { name: '遅延連絡', class: 'category-delay' },
             'contact': { name: '連絡確認', class: 'category-contact' },
@@ -390,10 +419,10 @@
             }
 
             container.innerHTML = filteredTemplates.map(template => `
-                <div class="template-item">
+                <div class="template-item category-${template.category}">
                     <div class="template-content">${template.text}</div>
                     <div class="template-actions">
-                        <span class="template-category">${categoryConfig[template.category]?.name || template.category}</span>
+                        <span class="template-category category-${template.category}">${categoryConfig[template.category]?.name || template.category}</span>
                         <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
                             コピー
                         </button>

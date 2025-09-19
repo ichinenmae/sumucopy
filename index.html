@@ -349,7 +349,10 @@
                 button.textContent = config.name;
                 button.onclick = () => selectCategory(categoryId);
                 
-                if (categoryId !== currentCategory) {
+                // 現在のカテゴリと異なる場合のみinactiveクラスを追加
+                if (categoryId === currentCategory) {
+                    // アクティブ状態（inactiveクラスを付けない）
+                } else {
                     button.classList.add('inactive');
                 }
                 

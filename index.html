@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>配達定型文アプリ</title>
+    <style>
+        /* グローバルリセット */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+            color: #545454;
+            line-height: 1.5;
+            padding-top: 120px; /* カテゴリメニュー分の余白を追加 */
+            padding-bottom: 20px;
+        }
+
+        /* タイトル画像のスタイル */
+        .title-image {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+            padding: 10px;
+        }
+
+        /* カテゴリメニュー */
+        .category-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 8px;
+        }
+
+        .category-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            min-width: 80px;
+        }
+
+        .category-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .category-btn:active {
+            transform: scale(0.95);
+        }
+
+        .category-btn.active {
+            background-color: #4caf50;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+        }
+
+        .category-arrival { background-color: #00C851; }
+        .category-delay { background-color: #DC143C; }
+        .category-contact { background-color: #FF6B6B; }
+        .category-pickup { background-color: #FF8C00; }
+        .category-delivery { background-color: #00BFFF; }
+        .category-problem { background-color: #9C27B0; }
+
+        /* 定型文リスト */
+        .templates-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .template-item {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .template-content {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .template-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .template-category {
+            font-size: 0.8em;
+            color: #666;
+            background-color: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .copy-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+            background-color: #4caf50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            min-width: 100px;
+        }
+
+        .copy-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn.copied {
+            background-color: #2196F3;
+            transform: scale(0.95);
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        /* ローディング表示 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4caf50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* エラー表示 */
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #f44336;
+            font-size: 1.1em;
+        }
+
+        /* 非表示クラス */
+        .hidden {
+            display: none !important;
+        }
+
+        /* メディアクエリ */
+        @media (max-width: 768px) {
+            body {
+                font-size: 18px;
+                padding-top: 140px;
+            }
+
+            .category-btn {
+                font-size: 0.8em;
+                padding: 6px 12px;
+                min-width: 70px;
+            }
+
+            .template-item {
+                padding: 15px;
+                margin-bottom: 12px;
+            }
+
+            .template-content {
+                font-size: 1em;
+            }
+
+            .copy-btn {
+                font-size: 1em;
+                padding: 10px 16px;
+                min-width: 80px;
+            }
+
+            .templates-container {
+                padding: 0 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 160px;
+            }
+
+            .category-buttons {
+                gap: 4px;
+            }
+
+            .category-btn {
+                font-size: 0.7em;
+                padding: 4px 8px;
+                min-width: 60px;
+            }
+
+            .template-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .copy-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="background-color: #f5f5f5; padding: 10px; text-align: center; font-size: 1.5em; font-weight: bold; color: #545454;">
+            配達定型文アプリ
+        </div>
+    </header>
+
+    <!-- カテゴリメニュー -->
+    <div class="category-menu">
+        <div class="category-buttons" id="categoryButtons">
+            <!-- JavaScriptで動的に生成 -->
+        </div>
+    </div>
+
+    <!-- 定型文リスト -->
+    <div class="templates-container" id="templatesContainer">
+        <div class="loading" id="loading">定型文を読み込み中...</div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let templates = [];
+        let categories = [];
+        let currentCategory = 'all';
+
+        // カテゴリ設定
+        const categoryConfig = {
+            'all': { name: '全て', class: 'category-btn' },
+            'arrival': { name: '到着連絡', class: 'category-arrival' },
+            'delay': { name: '遅延連絡', class: 'category-delay' },
+            'contact': { name: '連絡確認', class: 'category-contact' },
+            'pickup': { name: '受け取り', class: 'category-pickup' },
+            'delivery': { name: '配達完了', class: 'category-delivery' },
+            'problem': { name: 'トラブル', class: 'category-problem' }
+        };
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTemplates();
+        });
+
+        // 定型文データの読み込み
+        async function loadTemplates() {
+            try {
+                const response = await fetch('templates.json');
+                if (!response.ok) {
+                    throw new Error('定型文ファイルの読み込みに失敗しました');
+                }
+                templates = await response.json();
+                
+                // カテゴリの抽出
+                categories = ['all', ...new Set(templates.map(t => t.category))];
+                
+                // UIの初期化
+                renderCategoryButtons();
+                renderTemplates();
+                
+                // ローディング非表示
+                document.getElementById('loading').classList.add('hidden');
+                
+            } catch (error) {
+                console.error('エラー:', error);
+                showError('定型文の読み込みに失敗しました。ネットワーク接続を確認してください。');
+            }
+        }
+
+        // カテゴリボタンの描画
+        function renderCategoryButtons() {
+            const container = document.getElementById('categoryButtons');
+            container.innerHTML = '';
+
+            categories.forEach(categoryId => {
+                const config = categoryConfig[categoryId];
+                if (!config) return;
+
+                const button = document.createElement('button');
+                button.className = `category-btn ${config.class}`;
+                button.textContent = config.name;
+                button.onclick = () => selectCategory(categoryId);
+                
+                if (categoryId === currentCategory) {
+                    button.classList.add('active');
+                }
+                
+                container.appendChild(button);
+            });
+        }
+
+        // カテゴリ選択
+        function selectCategory(categoryId) {
+            currentCategory = categoryId;
+            renderCategoryButtons();
+            renderTemplates();
+        }
+
+        // 定型文リストの描画
+        function renderTemplates() {
+            const container = document.getElementById('templatesContainer');
+            const filteredTemplates = currentCategory === 'all' 
+                ? templates 
+                : templates.filter(t => t.category === currentCategory);
+
+            if (filteredTemplates.length === 0) {
+                container.innerHTML = '<div class="error">該当する定型文がありません</div>';
+                return;
+            }
+
+            container.innerHTML = filteredTemplates.map(template => `
+                <div class="template-item">
+                    <div class="template-content">${template.text}</div>
+                    <div class="template-actions">
+                        <span class="template-category">${categoryConfig[template.category]?.name || template.category}</span>
+                        <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
+                            コピー
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // クリップボードにコピー
+        async function copyToClipboard(text, buttonElement) {
+            try {
+                // HTMLエスケープを解除
+                const unescapedText = unescapeHtml(text);
+                
+                if (!navigator.clipboard) {
+                    throw new Error('クリップボードAPIが利用できません');
+                }
+
+                await navigator.clipboard.writeText(unescapedText);
+                
+                // ボタンの状態変更
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = '✓ コピー完了';
+                buttonElement.classList.add('copied');
+                
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.classList.remove('copied');
+                }, 1500);
+                
+                // トースト表示
+                showToast('クリップボードにコピーしました', 'success');
+                
+            } catch (error) {
+                console.error('コピーエラー:', error);
+                showToast('コピーに失敗しました', 'error');
+                
+                // フォールバック: テキスト選択
+                fallbackCopyToClipboard(unescapeHtml(text));
+            }
+        }
+
+        // フォールバック: テキスト選択によるコピー
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('テキストを選択しました（手動でコピーしてください）', 'success');
+            } catch (err) {
+                showToast('コピー機能が利用できません', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // トースト通知の表示
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // エラー表示
+        function showError(message) {
+            const container = document.getElementById('templatesContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // HTMLエスケープ/アンエスケープ
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function unescapeHtml(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            return div.textContent || div.innerText || '';
+        }
+    </script>
+</body>
+</html>

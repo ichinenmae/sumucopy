@@ -312,20 +312,77 @@
         // 定型文データの読み込み
         async function loadTemplates() {
             try {
+                // まずJSONファイルから読み込みを試行
                 const response = await fetch('templates.json');
-                if (!response.ok) {
-                    throw new Error('定型文ファイルの読み込みに失敗しました');
+                if (response.ok) {
+                    templates = await response.json();
+                } else {
+                    throw new Error('JSONファイルが見つかりません');
                 }
-                templates = await response.json();
+            } catch (error) {
+                console.warn('JSONファイルの読み込みに失敗:', error.message);
+                console.log('サンプルデータを使用します');
                 
+                // サンプルデータを使用
+                templates = [
+                    {
+                        "category": "arrival",
+                        "text": "お疲れ様です。ただいま配達先に到着いたしました。お受け取りをお待ちしております。"
+                    },
+                    {
+                        "category": "arrival",
+                        "text": "配達員です。マンションのエントランスに到着いたしました。オートロックの解錠をお願いいたします。"
+                    },
+                    {
+                        "category": "arrival",
+                        "text": "お疲れ様です。お客様のお近くまで参りました。お受け取り場所の詳細を教えていただけますでしょうか。"
+                    },
+                    {
+                        "category": "delay",
+                        "text": "申し訳ございません。交通状況により、到着が約10分程度遅れる見込みです。お待たせして大変恐縮です。"
+                    },
+                    {
+                        "category": "delay",
+                        "text": "恐れ入ります。レストランでの調理に想定以上の時間がかかっており、配達時間が15分程度遅れる予定です。ご迷惑をおかけして申し訳ございません。"
+                    },
+                    {
+                        "category": "contact",
+                        "text": "配達員です。お電話に出ていただけないため、メッセージでご連絡いたします。ご都合の良いときにお返事ください。"
+                    },
+                    {
+                        "category": "pickup",
+                        "text": "お疲れ様です。建物の入り口でお待ちしております。お時間のある時にお受け取りください。"
+                    },
+                    {
+                        "category": "pickup",
+                        "text": "配達員です。置き配をご希望でしたら、安全な場所に設置いたします。ご希望の場所をお教えください。"
+                    },
+                    {
+                        "category": "delivery",
+                        "text": "配達完了いたしました。お忙しい中お受け取りいただき、ありがとうございました。今後ともよろしくお願いいたします。"
+                    },
+                    {
+                        "category": "delivery",
+                        "text": "ご指定の場所に商品を設置いたしました。お忙しい中ご利用いただき、ありがとうございました。"
+                    },
+                    {
+                        "category": "problem",
+                        "text": "申し訳ございません。商品に問題があるようです。お手数ですが、アプリのサポートまでご連絡ください。"
+                    },
+                    {
+                        "category": "problem",
+                        "text": "大変申し訳ございません。配達先が見つからず困っております。詳しい場所を教えていただけますでしょうか。"
+                    }
+                ];
+            }
+            
+            try {
                 renderCategoryButtons();
                 renderTemplates();
-                
                 document.getElementById('loading').classList.add('hidden');
-                
-            } catch (error) {
-                console.error('エラー:', error);
-                showError('定型文の読み込みに失敗しました。ネットワーク接続を確認してください。');
+            } catch (renderError) {
+                console.error('レンダリングエラー:', renderError);
+                showError('アプリの初期化に失敗しました。');
             }
         }
 

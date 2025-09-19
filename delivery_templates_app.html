@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>配達定型文アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+            color: #545454;
+            line-height: 1.5;
+            padding-top: 120px;
+            padding-bottom: 20px;
+        }
+
+        /* ヘッダー */
+        .header {
+            background-color: #f5f5f5;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #545454;
+        }
+
+        /* カテゴリメニュー */
+        .category-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 8px;
+        }
+
+        .category-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            min-width: 80px;
+        }
+
+        .category-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* カテゴリボタンの色設定 */
+        .btn-all { background-color: #4caf50; }
+        .btn-all.inactive { background-color: #a5d6a7; }
+
+        .btn-arrival { background-color: #00C851; }
+        .btn-arrival.inactive { background-color: #81c784; }
+
+        .btn-delay { background-color: #DC143C; }
+        .btn-delay.inactive { background-color: #e57373; }
+
+        .btn-contact { background-color: #FF6B6B; }
+        .btn-contact.inactive { background-color: #ffab91; }
+
+        .btn-pickup { background-color: #FF8C00; }
+        .btn-pickup.inactive { background-color: #ffcc80; }
+
+        .btn-delivery { background-color: #00BFFF; }
+        .btn-delivery.inactive { background-color: #81d4fa; }
+
+        .btn-problem { background-color: #9C27B0; }
+        .btn-problem.inactive { background-color: #ce93d8; }
+
+        /* 定型文コンテナ */
+        .templates-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* 定型文アイテム */
+        .template-item {
+            background-color: #f8f8f8;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .template-content {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .template-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .template-category {
+            font-size: 0.8em;
+            color: white;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* カテゴリ表記の色設定 */
+        .cat-all { background-color: #4caf50; }
+        .cat-arrival { background-color: #00C851; }
+        .cat-delay { background-color: #DC143C; }
+        .cat-contact { background-color: #FF6B6B; }
+        .cat-pickup { background-color: #FF8C00; }
+        .cat-delivery { background-color: #00BFFF; }
+        .cat-problem { background-color: #9C27B0; }
+
+        /* 左ボーダーの色設定 */
+        .border-all { border-left-color: #4caf50; }
+        .border-arrival { border-left-color: #00C851; }
+        .border-delay { border-left-color: #DC143C; }
+        .border-contact { border-left-color: #FF6B6B; }
+        .border-pickup { border-left-color: #FF8C00; }
+        .border-delivery { border-left-color: #00BFFF; }
+        .border-problem { border-left-color: #9C27B0; }
+
+        .copy-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+            background-color: #4caf50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            min-width: 100px;
+        }
+
+        .copy-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied {
+            background-color: #2196F3;
+            transform: scale(0.95);
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        .loading, .error {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .error {
+            color: #f44336;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            body {
+                font-size: 18px;
+                padding-top: 140px;
+            }
+
+            .category-btn {
+                font-size: 0.8em;
+                padding: 6px 12px;
+                min-width: 70px;
+            }
+
+            .template-item {
+                padding: 15px;
+                margin-bottom: 12px;
+            }
+
+            .copy-btn {
+                font-size: 1em;
+                padding: 10px 16px;
+            }
+
+            .templates-container {
+                padding: 0 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 160px;
+            }
+
+            .category-buttons {
+                gap: 4px;
+            }
+
+            .category-btn {
+                font-size: 0.7em;
+                padding: 4px 8px;
+                min-width: 60px;
+            }
+
+            .template-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .copy-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        配達定型文アプリ
+    </div>
+
+    <!-- カテゴリメニュー -->
+    <div class="category-menu">
+        <div class="category-buttons" id="categoryButtons">
+            <!-- JavaScriptで動的に生成 -->
+        </div>
+    </div>
+
+    <!-- 定型文リスト -->
+    <div class="templates-container" id="templatesContainer">
+        <div class="loading" id="loading">定型文を読み込み中...</div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let templates = [];
+        let currentCategory = 'all';
+
+        // カテゴリ設定
+        const categories = {
+            'all': { name: '全て', btnClass: 'btn-all', catClass: 'cat-all', borderClass: 'border-all' },
+            'arrival': { name: '到着連絡', btnClass: 'btn-arrival', catClass: 'cat-arrival', borderClass: 'border-arrival' },
+            'delay': { name: '遅延連絡', btnClass: 'btn-delay', catClass: 'cat-delay', borderClass: 'border-delay' },
+            'contact': { name: '連絡確認', btnClass: 'btn-contact', catClass: 'cat-contact', borderClass: 'border-contact' },
+            'pickup': { name: '受け取り', btnClass: 'btn-pickup', catClass: 'cat-pickup', borderClass: 'border-pickup' },
+            'delivery': { name: '配達完了', btnClass: 'btn-delivery', catClass: 'cat-delivery', borderClass: 'border-delivery' },
+            'problem': { name: 'トラブル', btnClass: 'btn-problem', catClass: 'cat-problem', borderClass: 'border-problem' }
+        };
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTemplates();
+        });
+
+        // 定型文データの読み込み
+        async function loadTemplates() {
+            try {
+                const response = await fetch('templates.json');
+                if (!response.ok) {
+                    throw new Error('定型文ファイルの読み込みに失敗しました');
+                }
+                templates = await response.json();
+                
+                renderCategoryButtons();
+                renderTemplates();
+                
+                document.getElementById('loading').classList.add('hidden');
+                
+            } catch (error) {
+                console.error('エラー:', error);
+                showError('定型文の読み込みに失敗しました。ネットワーク接続を確認してください。');
+            }
+        }
+
+        // カテゴリボタンの描画
+        function renderCategoryButtons() {
+            const container = document.getElementById('categoryButtons');
+            container.innerHTML = '';
+
+            // 全てボタンを最初に追加
+            const allCategories = ['all'];
+            // 実際に存在するカテゴリのみ追加
+            const existingCategories = [...new Set(templates.map(t => t.category))];
+            allCategories.push(...existingCategories);
+
+            allCategories.forEach(categoryId => {
+                const config = categories[categoryId];
+                if (!config) return;
+
+                const button = document.createElement('button');
+                button.className = `category-btn ${config.btnClass}`;
+                button.textContent = config.name;
+                button.onclick = () => selectCategory(categoryId);
+                
+                if (categoryId !== currentCategory) {
+                    button.classList.add('inactive');
+                }
+                
+                container.appendChild(button);
+            });
+        }
+
+        // カテゴリ選択
+        function selectCategory(categoryId) {
+            currentCategory = categoryId;
+            renderCategoryButtons();
+            renderTemplates();
+        }
+
+        // 定型文リストの描画
+        function renderTemplates() {
+            const container = document.getElementById('templatesContainer');
+            const filteredTemplates = currentCategory === 'all' 
+                ? templates 
+                : templates.filter(t => t.category === currentCategory);
+
+            if (filteredTemplates.length === 0) {
+                container.innerHTML = '<div class="error">該当する定型文がありません</div>';
+                return;
+            }
+
+            container.innerHTML = filteredTemplates.map(template => {
+                const config = categories[template.category];
+                return `
+                    <div class="template-item ${config.borderClass}">
+                        <div class="template-content">${template.text}</div>
+                        <div class="template-actions">
+                            <span class="template-category ${config.catClass}">${config.name}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
+                                コピー
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // クリップボードにコピー
+        async function copyToClipboard(text, buttonElement) {
+            try {
+                const unescapedText = unescapeHtml(text);
+                
+                if (!navigator.clipboard) {
+                    throw new Error('クリップボードAPIが利用できません');
+                }
+
+                await navigator.clipboard.writeText(unescapedText);
+                
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = '✓ 完了';
+                buttonElement.classList.add('copied');
+                
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.classList.remove('copied');
+                }, 1500);
+                
+                showToast('クリップボードにコピーしました', 'success');
+                
+            } catch (error) {
+                console.error('コピーエラー:', error);
+                showToast('コピーに失敗しました', 'error');
+                fallbackCopyToClipboard(unescapeHtml(text));
+            }
+        }
+
+        // フォールバック: テキスト選択
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('テキストを選択しました', 'success');
+            } catch (err) {
+                showToast('コピー機能が利用できません', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // トースト通知の表示
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // エラー表示
+        function showError(message) {
+            const container = document.getElementById('templatesContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // HTMLエスケープ/アンエスケープ
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function unescapeHtml(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            return div.textContent || div.innerText || '';
+        }
+    </script>
+</body>
+</html>

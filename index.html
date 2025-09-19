@@ -399,7 +399,11 @@
 
             allCategories.forEach(categoryId => {
                 const config = categories[categoryId];
-                if (!config) return;
+                // 設定が見つからない場合はスキップ（エラーにしない）
+                if (!config) {
+                    console.warn(`カテゴリ設定が見つかりません: ${categoryId}`);
+                    return;
+                }
 
                 const button = document.createElement('button');
                 button.className = `category-btn ${config.btnClass}`;
@@ -438,6 +442,22 @@
 
             container.innerHTML = filteredTemplates.map(template => {
                 const config = categories[template.category];
+                // 設定が見つからない場合はデフォルト値を使用
+                if (!config) {
+                    console.warn(`カテゴリ設定が見つかりません: ${template.category}`);
+                    return `
+                        <div class="template-item border-all">
+                            <div class="template-content">${template.text}</div>
+                            <div class="template-actions">
+                                <span class="template-category cat-all">${template.category}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
+                                    コピー
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
                 return `
                     <div class="template-item ${config.borderClass}">
                         <div class="template-content">${template.text}</div>

@@ -71,23 +71,23 @@
         .btn-all { background-color: #4caf50; }
         .btn-all.inactive { background-color: #a5d6a7; }
 
-        .btn-arrival { background-color: #00C851; }
-        .btn-arrival.inactive { background-color: #81c784; }
+        .btn-category-1 { background-color: #00C851; }
+        .btn-category-1.inactive { background-color: #81c784; }
 
-        .btn-delay { background-color: #DC143C; }
-        .btn-delay.inactive { background-color: #e57373; }
+        .btn-category-2 { background-color: #DC143C; }
+        .btn-category-2.inactive { background-color: #e57373; }
 
-        .btn-contact { background-color: #FF6B6B; }
-        .btn-contact.inactive { background-color: #ffab91; }
+        .btn-category-3 { background-color: #FF6B6B; }
+        .btn-category-3.inactive { background-color: #ffab91; }
 
-        .btn-pickup { background-color: #FF8C00; }
-        .btn-pickup.inactive { background-color: #ffcc80; }
+        .btn-category-4 { background-color: #FF8C00; }
+        .btn-category-4.inactive { background-color: #ffcc80; }
 
-        .btn-delivery { background-color: #00BFFF; }
-        .btn-delivery.inactive { background-color: #81d4fa; }
+        .btn-category-5 { background-color: #00BFFF; }
+        .btn-category-5.inactive { background-color: #81d4fa; }
 
-        .btn-problem { background-color: #9C27B0; }
-        .btn-problem.inactive { background-color: #ce93d8; }
+        .btn-category-6 { background-color: #9C27B0; }
+        .btn-category-6.inactive { background-color: #ce93d8; }
 
         /* 定型文コンテナ */
         .templates-container {
@@ -131,21 +131,21 @@
 
         /* カテゴリ表記の色設定 */
         .cat-all { background-color: #4caf50; }
-        .cat-arrival { background-color: #00C851; }
-        .cat-delay { background-color: #DC143C; }
-        .cat-contact { background-color: #FF6B6B; }
-        .cat-pickup { background-color: #FF8C00; }
-        .cat-delivery { background-color: #00BFFF; }
-        .cat-problem { background-color: #9C27B0; }
+        .cat-category-1 { background-color: #00C851; }
+        .cat-category-2 { background-color: #DC143C; }
+        .cat-category-3 { background-color: #FF6B6B; }
+        .cat-category-4 { background-color: #FF8C00; }
+        .cat-category-5 { background-color: #00BFFF; }
+        .cat-category-6 { background-color: #9C27B0; }
 
         /* 左ボーダーの色設定 */
         .border-all { border-left-color: #4caf50; }
-        .border-arrival { border-left-color: #00C851; }
-        .border-delay { border-left-color: #DC143C; }
-        .border-contact { border-left-color: #FF6B6B; }
-        .border-pickup { border-left-color: #FF8C00; }
-        .border-delivery { border-left-color: #00BFFF; }
-        .border-problem { border-left-color: #9C27B0; }
+        .border-category-1 { border-left-color: #00C851; }
+        .border-category-2 { border-left-color: #DC143C; }
+        .border-category-3 { border-left-color: #FF6B6B; }
+        .border-category-4 { border-left-color: #FF8C00; }
+        .border-category-5 { border-left-color: #00BFFF; }
+        .border-category-6 { border-left-color: #9C27B0; }
 
         .copy-btn {
             padding: 12px 24px;
@@ -293,16 +293,30 @@
         let templates = [];
         let currentCategory = 'all';
 
-        // カテゴリ設定
-        const categories = {
-            'all': { name: '全て', btnClass: 'btn-all', catClass: 'cat-all', borderClass: 'border-all' },
-            'arrival': { name: '到着連絡', btnClass: 'btn-arrival', catClass: 'cat-arrival', borderClass: 'border-arrival' },
-            'delay': { name: '遅延連絡', btnClass: 'btn-delay', catClass: 'cat-delay', borderClass: 'border-delay' },
-            'contact': { name: '連絡確認', btnClass: 'btn-contact', catClass: 'cat-contact', borderClass: 'border-contact' },
-            'pickup': { name: '受け取り', btnClass: 'btn-pickup', catClass: 'cat-pickup', borderClass: 'border-pickup' },
-            'delivery': { name: '配達完了', btnClass: 'btn-delivery', catClass: 'cat-delivery', borderClass: 'border-delivery' },
-            'problem': { name: 'トラブル', btnClass: 'btn-problem', catClass: 'cat-problem', borderClass: 'border-problem' }
+        // カテゴリ設定（デフォルト値）
+        const defaultCategoryNames = {
+            'all': '全て',
+            'category-1': '到着連絡',
+            'category-2': '遅延連絡', 
+            'category-3': '連絡確認',
+            'category-4': '受け取り',
+            'category-5': '配達完了',
+            'category-6': 'トラブル'
         };
+
+        // カテゴリ設定（色とクラス名）
+        const categoryStyles = {
+            'all': { btnClass: 'btn-all', catClass: 'cat-all', borderClass: 'border-all' },
+            'category-1': { btnClass: 'btn-category-1', catClass: 'cat-category-1', borderClass: 'border-category-1' },
+            'category-2': { btnClass: 'btn-category-2', catClass: 'cat-category-2', borderClass: 'border-category-2' },
+            'category-3': { btnClass: 'btn-category-3', catClass: 'cat-category-3', borderClass: 'border-category-3' },
+            'category-4': { btnClass: 'btn-category-4', catClass: 'cat-category-4', borderClass: 'border-category-4' },
+            'category-5': { btnClass: 'btn-category-5', catClass: 'cat-category-5', borderClass: 'border-category-5' },
+            'category-6': { btnClass: 'btn-category-6', catClass: 'cat-category-6', borderClass: 'border-category-6' }
+        };
+
+        // 現在のカテゴリ名（JSONから読み込み後に更新される）
+        let categoryNames = {...defaultCategoryNames};
 
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
@@ -311,11 +325,13 @@
 
         // 定型文データの読み込み
         async function loadTemplates() {
+            let jsonData = null;
+            
             try {
                 // まずJSONファイルから読み込みを試行
                 const response = await fetch('templates.json');
                 if (response.ok) {
-                    templates = await response.json();
+                    jsonData = await response.json();
                 } else {
                     throw new Error('JSONファイルが見つかりません');
                 }
@@ -324,57 +340,75 @@
                 console.log('サンプルデータを使用します');
                 
                 // サンプルデータを使用
-                templates = [
-                    {
-                        "category": "arrival",
-                        "text": "お疲れ様です。ただいま配達先に到着いたしました。お受け取りをお待ちしております。"
+                jsonData = {
+                    "categoryNames": {
+                        "category-1": "到着連絡",
+                        "category-2": "遅延連絡",
+                        "category-3": "連絡確認",
+                        "category-4": "受け取り", 
+                        "category-5": "配達完了",
+                        "category-6": "トラブル"
                     },
-                    {
-                        "category": "arrival",
-                        "text": "配達員です。マンションのエントランスに到着いたしました。オートロックの解錠をお願いいたします。"
-                    },
-                    {
-                        "category": "arrival",
-                        "text": "お疲れ様です。お客様のお近くまで参りました。お受け取り場所の詳細を教えていただけますでしょうか。"
-                    },
-                    {
-                        "category": "delay",
-                        "text": "申し訳ございません。交通状況により、到着が約10分程度遅れる見込みです。お待たせして大変恐縮です。"
-                    },
-                    {
-                        "category": "delay",
-                        "text": "恐れ入ります。レストランでの調理に想定以上の時間がかかっており、配達時間が15分程度遅れる予定です。ご迷惑をおかけして申し訳ございません。"
-                    },
-                    {
-                        "category": "contact",
-                        "text": "配達員です。お電話に出ていただけないため、メッセージでご連絡いたします。ご都合の良いときにお返事ください。"
-                    },
-                    {
-                        "category": "pickup",
-                        "text": "お疲れ様です。建物の入り口でお待ちしております。お時間のある時にお受け取りください。"
-                    },
-                    {
-                        "category": "pickup",
-                        "text": "配達員です。置き配をご希望でしたら、安全な場所に設置いたします。ご希望の場所をお教えください。"
-                    },
-                    {
-                        "category": "delivery",
-                        "text": "配達完了いたしました。お忙しい中お受け取りいただき、ありがとうございました。今後ともよろしくお願いいたします。"
-                    },
-                    {
-                        "category": "delivery",
-                        "text": "ご指定の場所に商品を設置いたしました。お忙しい中ご利用いただき、ありがとうございました。"
-                    },
-                    {
-                        "category": "problem",
-                        "text": "申し訳ございません。商品に問題があるようです。お手数ですが、アプリのサポートまでご連絡ください。"
-                    },
-                    {
-                        "category": "problem",
-                        "text": "大変申し訳ございません。配達先が見つからず困っております。詳しい場所を教えていただけますでしょうか。"
-                    }
-                ];
+                    "templates": [
+                        {
+                            "category": "category-1",
+                            "text": "お疲れ様です。ただいま配達先に到着いたしました。お受け取りをお待ちしております。"
+                        },
+                        {
+                            "category": "category-1",
+                            "text": "配達員です。マンションのエントランスに到着いたしました。オートロックの解錠をお願いいたします。"
+                        },
+                        {
+                            "category": "category-1",
+                            "text": "お疲れ様です。お客様のお近くまで参りました。お受け取り場所の詳細を教えていただけますでしょうか。"
+                        },
+                        {
+                            "category": "category-2",
+                            "text": "申し訳ございません。交通状況により、到着が約10分程度遅れる見込みです。お待たせして大変恐縮です。"
+                        },
+                        {
+                            "category": "category-2",
+                            "text": "恐れ入ります。レストランでの調理に想定以上の時間がかかっており、配達時間が15分程度遅れる予定です。ご迷惑をおかけして申し訳ございません。"
+                        },
+                        {
+                            "category": "category-3",
+                            "text": "配達員です。お電話に出ていただけないため、メッセージでご連絡いたします。ご都合の良いときにお返事ください。"
+                        },
+                        {
+                            "category": "category-4",
+                            "text": "お疲れ様です。建物の入り口でお待ちしております。お時間のある時にお受け取りください。"
+                        },
+                        {
+                            "category": "category-4",
+                            "text": "配達員です。置き配をご希望でしたら、安全な場所に設置いたします。ご希望の場所をお教えください。"
+                        },
+                        {
+                            "category": "category-5",
+                            "text": "配達完了いたしました。お忙しい中お受け取りいただき、ありがとうございました。今後ともよろしくお願いいたします。"
+                        },
+                        {
+                            "category": "category-5",
+                            "text": "ご指定の場所に商品を設置いたしました。お忙しい中ご利用いただき、ありがとうございました。"
+                        },
+                        {
+                            "category": "category-6",
+                            "text": "申し訳ございません。商品に問題があるようです。お手数ですが、アプリのサポートまでご連絡ください。"
+                        },
+                        {
+                            "category": "category-6",
+                            "text": "大変申し訳ございません。配達先が見つからず困っております。詳しい場所を教えていただけますでしょうか。"
+                        }
+                    ]
+                };
             }
+            
+            // データの抽出とカテゴリ名の更新
+            if (jsonData.categoryNames) {
+                // カスタムカテゴリ名がある場合は更新
+                categoryNames = {...defaultCategoryNames, ...jsonData.categoryNames};
+            }
+            
+            templates = jsonData.templates || jsonData || [];
             
             try {
                 renderCategoryButtons();
@@ -403,16 +437,18 @@
             allCategories.push(...existingCategories);
 
             allCategories.forEach(categoryId => {
-                const config = categories[categoryId];
-                // 設定が見つからない場合はスキップ（エラーにしない）
-                if (!config) {
-                    console.warn(`カテゴリ設定が見つかりません: ${categoryId}`);
+                const styleConfig = categoryStyles[categoryId];
+                // スタイル設定が見つからない場合はスキップ
+                if (!styleConfig) {
+                    console.warn(`カテゴリのスタイル設定が見つかりません: ${categoryId}`);
                     return;
                 }
 
+                const categoryName = categoryNames[categoryId] || categoryId;
+
                 const button = document.createElement('button');
-                button.className = `category-btn ${config.btnClass}`;
-                button.textContent = config.name;
+                button.className = `category-btn ${styleConfig.btnClass}`;
+                button.textContent = categoryName;
                 button.onclick = () => selectCategory(categoryId);
                 
                 // 現在のカテゴリと異なる場合のみinactiveクラスを追加
@@ -446,15 +482,17 @@
             }
 
             container.innerHTML = filteredTemplates.map(template => {
-                const config = categories[template.category];
-                // 設定が見つからない場合はデフォルト値を使用
-                if (!config) {
-                    console.warn(`カテゴリ設定が見つかりません: ${template.category}`);
+                const styleConfig = categoryStyles[template.category];
+                const categoryName = categoryNames[template.category] || template.category;
+                
+                // スタイル設定が見つからない場合はデフォルト値を使用
+                if (!styleConfig) {
+                    console.warn(`カテゴリのスタイル設定が見つかりません: ${template.category}`);
                     return `
                         <div class="template-item border-all">
                             <div class="template-content">${template.text}</div>
                             <div class="template-actions">
-                                <span class="template-category cat-all">${template.category}</span>
+                                <span class="template-category cat-all">${categoryName}</span>
                                 <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
                                     コピー
                                 </button>
@@ -464,10 +502,10 @@
                 }
                 
                 return `
-                    <div class="template-item ${config.borderClass}">
+                    <div class="template-item ${styleConfig.borderClass}">
                         <div class="template-content">${template.text}</div>
                         <div class="template-actions">
-                            <span class="template-category ${config.catClass}">${config.name}</span>
+                            <span class="template-category ${styleConfig.catClass}">${categoryName}</span>
                             <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
                                 コピー
                             </button>

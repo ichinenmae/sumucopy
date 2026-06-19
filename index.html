@@ -17,7 +17,7 @@
             color: #545454;
             line-height: 1.5;
             padding-top: 120px;
-            padding-bottom: 20px;
+            padding-bottom: calc(92px + env(safe-area-inset-bottom));
         }
 
         /* タイトル画像のスタイル */
@@ -175,7 +175,7 @@
         /* トースト通知 */
         .toast {
             position: fixed;
-            bottom: 30px;
+            bottom: calc(84px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             background-color: #333;
@@ -214,6 +214,46 @@
 
         .hidden {
             display: none !important;
+        }
+
+        .quick-switch-bar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1500;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid #d8e6d8;
+            box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .quick-switch-btn {
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #2e7d32;
+            font-size: 1.15em;
+            font-weight: bold;
+            text-decoration: none;
+            line-height: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+        }
+
+        .quick-switch-btn.active {
+            background: #4caf50;
+            color: #ffffff;
+        }
+
+        .quick-switch-btn:active {
+            transform: scale(0.98);
         }
 
         /* レスポンシブ */
@@ -289,6 +329,11 @@
 
     <!-- トースト通知 -->
     <div class="toast" id="toast"></div>
+
+    <nav class="quick-switch-bar" aria-label="稼働中ツール切替">
+        <a class="quick-switch-btn active" href="./" aria-current="page">定型文</a>
+        <a class="quick-switch-btn" href="../sumureco/preview.html">ペース</a>
+    </nav>
 
     <script>
         let templates = [];

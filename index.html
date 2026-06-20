@@ -97,6 +97,89 @@
             padding: 0 20px;
         }
 
+        .quick-copy-section {
+            max-width: 600px;
+            margin: 20px auto 0;
+            padding: 0 20px;
+        }
+
+        .quick-copy-title {
+            color: #545454;
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .quick-copy-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .quick-copy-btn {
+            min-height: 56px;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4caf50;
+            color: #ffffff;
+            font-size: 1em;
+            font-weight: bold;
+            line-height: 1.25;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .quick-copy-btn:active {
+            transform: scale(0.98);
+        }
+
+        .mode-actions {
+            max-width: 600px;
+            margin: 12px auto 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .mode-toggle-btn {
+            min-height: 44px;
+            padding: 8px 16px;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #2e7d32;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .mode-toggle-btn.active {
+            background: #4caf50;
+            color: #ffffff;
+        }
+
+        .template-label {
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .favorite-btn {
+            padding: 10px 14px;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #2e7d32;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .favorite-btn.active {
+            background: #4caf50;
+            color: #ffffff;
+        }
+
         /* 定型文アイテム */
         .template-item {
             background-color: #f8f8f8;
@@ -282,6 +365,14 @@
             .templates-container {
                 padding: 0 15px;
             }
+
+            .quick-copy-section {
+                padding: 0 15px;
+            }
+
+            .mode-actions {
+                padding: 0 15px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -323,6 +414,15 @@
     </div>
 
     <!-- 定型文リスト -->
+    <section class="quick-copy-section" aria-label="クイックコピー">
+        <div class="quick-copy-title">クイックコピー</div>
+        <div class="quick-copy-buttons" id="quickCopyButtons"></div>
+    </section>
+
+    <div class="mode-actions">
+        <button class="mode-toggle-btn" id="modeToggleBtn" type="button">編集モード</button>
+    </div>
+
     <div class="templates-container" id="templatesContainer">
         <div class="loading" id="loading">定型文を読み込み中...</div>
     </div>
@@ -336,8 +436,10 @@
     </nav>
 
     <script>
+        const STORAGE_KEY = 'sumucopy.templates.v2';
         let templates = [];
         let currentCategory = 'all';
+        let isEditMode = false;
 
         // カテゴリ設定（デフォルト値）
         const defaultCategoryNames = {
@@ -366,6 +468,11 @@
 
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
+            const modeToggleBtn = document.getElementById('modeToggleBtn');
+            if (modeToggleBtn) {
+                modeToggleBtn.addEventListener('click', toggleEditMode);
+            }
+
             loadTemplates();
         });
 
@@ -448,16 +555,21 @@
                 };
             }
             
-            // データの抽出とカテゴリ名の更新
-            if (jsonData.categoryNames) {
-                // カスタムカテゴリ名がある場合は更新
-                categoryNames = {...defaultCategoryNames, ...jsonData.categoryNames};
+            const initialData = normalizeTemplateData(jsonData);
+            const storedData = loadStoredTemplateData();
+
+            if (storedData) {
+                categoryNames = storedData.categoryNames;
+                templates = storedData.templates;
+            } else {
+                categoryNames = initialData.categoryNames;
+                templates = initialData.templates;
+                saveTemplateData();
             }
-            
-            templates = jsonData.templates || jsonData || [];
             
             try {
                 renderCategoryButtons();
+                renderQuickCopy();
                 renderTemplates();
                 
                 // loading要素の存在確認
@@ -468,6 +580,93 @@
             } catch (renderError) {
                 console.error('レンダリングエラー:', renderError);
                 showError('アプリの初期化に失敗しました。');
+            }
+        }
+
+        function normalizeTemplateData(rawData) {
+            const rawCategoryNames = rawData && rawData.categoryNames
+                ? rawData.categoryNames
+                : {};
+            const rawTemplates = rawData && rawData.templates
+                ? rawData.templates
+                : Array.isArray(rawData)
+                    ? rawData
+                    : [];
+
+            const mergedCategoryNames = {
+                ...defaultCategoryNames,
+                ...rawCategoryNames
+            };
+
+            const normalizedTemplates = rawTemplates.map((template, index) => {
+                const text = String(template.text || '');
+                const now = new Date().toISOString();
+                return {
+                    id: template.id || `tpl-${String(index + 1).padStart(3, '0')}`,
+                    category: template.category || 'category-1',
+                    label: template.label || createLabel(text),
+                    text,
+                    favorite: Boolean(template.favorite),
+                    sortOrder: Number.isFinite(Number(template.sortOrder))
+                        ? Number(template.sortOrder)
+                        : (index + 1) * 10,
+                    usageCount: Number.isFinite(Number(template.usageCount))
+                        ? Number(template.usageCount)
+                        : 0,
+                    updatedAt: template.updatedAt || now
+                };
+            }).filter(template => template.text.trim() !== '');
+
+            return {
+                version: 2,
+                categoryNames: mergedCategoryNames,
+                templates: normalizedTemplates
+            };
+        }
+
+        function createLabel(text) {
+            const compact = String(text || '').replace(/\s+/g, ' ').trim();
+            if (!compact) {
+                return '定型文';
+            }
+
+            return compact.length > 14
+                ? compact.slice(0, 14) + '…'
+                : compact;
+        }
+
+        function loadStoredTemplateData() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (!stored) {
+                    return null;
+                }
+
+                const parsed = JSON.parse(stored);
+                if (!parsed || !Array.isArray(parsed.templates)) {
+                    throw new Error('保存データの形式が不正です');
+                }
+
+                return normalizeTemplateData(parsed);
+            } catch (error) {
+                console.warn('保存済み定型文の読み込みに失敗:', error.message);
+                showToast('保存データを読み込めませんでした', 'error');
+                return null;
+            }
+        }
+
+        function saveTemplateData() {
+            try {
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify({
+                        version: 2,
+                        categoryNames,
+                        templates
+                    })
+                );
+            } catch (error) {
+                console.warn('定型文データの保存に失敗:', error.message);
             }
         }
 
@@ -515,62 +714,181 @@
             renderTemplates();
         }
 
+        function getQuickCopyTemplates() {
+            const favorites = templates
+                .filter(template => template.favorite)
+                .sort((a, b) => a.sortOrder - b.sortOrder);
+
+            if (favorites.length > 0) {
+                return favorites.slice(0, 4);
+            }
+
+            return [...templates]
+                .sort((a, b) => {
+                    if (b.usageCount !== a.usageCount) {
+                        return b.usageCount - a.usageCount;
+                    }
+
+                    return a.sortOrder - b.sortOrder;
+                })
+                .slice(0, 4);
+        }
+
+        function renderQuickCopy() {
+            const container = document.getElementById('quickCopyButtons');
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = '';
+
+            getQuickCopyTemplates().forEach(template => {
+                const button = document.createElement('button');
+                button.className = 'quick-copy-btn';
+                button.type = 'button';
+                button.dataset.id = template.id;
+                button.textContent = template.label || createLabel(template.text);
+                button.addEventListener('click', function() {
+                    copyTemplateById(this.dataset.id, this);
+                });
+
+                container.appendChild(button);
+            });
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            renderModeToggle();
+            renderTemplates();
+        }
+
+        function renderModeToggle() {
+            const btn = document.getElementById('modeToggleBtn');
+            if (!btn) {
+                return;
+            }
+
+            btn.textContent = isEditMode ? '通常モード' : '編集モード';
+            btn.classList.toggle('active', isEditMode);
+        }
+
         // 定型文リストの描画
         function renderTemplates() {
             const container = document.getElementById('templatesContainer');
             const filteredTemplates = currentCategory === 'all' 
                 ? templates 
                 : templates.filter(t => t.category === currentCategory);
+            filteredTemplates.sort((a, b) => a.sortOrder - b.sortOrder);
 
             if (filteredTemplates.length === 0) {
                 container.innerHTML = '<div class="error">該当する定型文がありません</div>';
                 return;
             }
 
-            container.innerHTML = filteredTemplates.map(template => {
+            container.innerHTML = '';
+
+            filteredTemplates.forEach(template => {
                 const styleConfig = categoryStyles[template.category];
                 const categoryName = categoryNames[template.category] || template.category;
-                
-                // スタイル設定が見つからない場合はデフォルト値を使用
+
+                const item = document.createElement('div');
+                item.className = `template-item ${styleConfig ? styleConfig.borderClass : 'border-all'}`;
+
+                if (isEditMode) {
+                    const label = document.createElement('div');
+                    label.className = 'template-label';
+                    label.textContent = template.label || createLabel(template.text);
+                    item.appendChild(label);
+                }
+
+                const content = document.createElement('div');
+                content.className = 'template-content';
+                content.textContent = template.text;
+
+                const actions = document.createElement('div');
+                actions.className = 'template-actions';
+
+                const category = document.createElement('span');
+                category.className = `template-category ${styleConfig ? styleConfig.catClass : 'cat-all'}`;
+                category.textContent = categoryName;
+
+                const button = document.createElement('button');
+                button.className = 'copy-btn';
+                button.type = 'button';
+                button.dataset.id = template.id;
+                button.textContent = 'コピー';
+                button.addEventListener('click', function() {
+                    copyTemplateById(this.dataset.id, this);
+                });
+
                 if (!styleConfig) {
                     console.warn(`カテゴリのスタイル設定が見つかりません: ${template.category}`);
-                    return `
-                        <div class="template-item border-all">
-                            <div class="template-content">${template.text}</div>
-                            <div class="template-actions">
-                                <span class="template-category cat-all">${categoryName}</span>
-                                <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
-                                    コピー
-                                </button>
-                            </div>
-                        </div>
-                    `;
                 }
-                
-                return `
-                    <div class="template-item ${styleConfig.borderClass}">
-                        <div class="template-content">${template.text}</div>
-                        <div class="template-actions">
-                            <span class="template-category ${styleConfig.catClass}">${categoryName}</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(template.text)}', this)">
-                                コピー
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+
+                actions.appendChild(category);
+
+                if (isEditMode) {
+                    const favoriteButton = document.createElement('button');
+                    favoriteButton.className = `favorite-btn${template.favorite ? ' active' : ''}`;
+                    favoriteButton.type = 'button';
+                    favoriteButton.dataset.id = template.id;
+                    favoriteButton.textContent = template.favorite ? 'お気に入り中' : 'お気に入り';
+                    favoriteButton.addEventListener('click', function() {
+                        toggleFavorite(this.dataset.id);
+                    });
+                    actions.appendChild(favoriteButton);
+                } else {
+                    actions.appendChild(button);
+                }
+
+                item.appendChild(content);
+                item.appendChild(actions);
+                container.appendChild(item);
+            });
+        }
+
+        function toggleFavorite(templateId) {
+            const template = templates.find(t => t.id === templateId);
+            if (!template) {
+                showToast('定型文が見つかりません', 'error');
+                return;
+            }
+
+            template.favorite = !template.favorite;
+            template.updatedAt = new Date().toISOString();
+            saveTemplateData();
+            renderQuickCopy();
+            renderTemplates();
+            showToast(
+                template.favorite ? 'お気に入りにしました' : 'お気に入りを解除しました',
+                'success'
+            );
+        }
+
+        async function copyTemplateById(templateId, buttonElement) {
+            const template = templates.find(t => t.id === templateId);
+            if (!template) {
+                showToast('定型文が見つかりません', 'error');
+                return;
+            }
+
+            const copied = await copyToClipboard(template.text, buttonElement);
+            if (copied) {
+                template.usageCount = (Number(template.usageCount) || 0) + 1;
+                template.updatedAt = new Date().toISOString();
+                saveTemplateData();
+                renderQuickCopy();
+            }
         }
 
         // クリップボードにコピー
         async function copyToClipboard(text, buttonElement) {
             try {
-                const unescapedText = unescapeHtml(text);
-                
                 if (!navigator.clipboard) {
                     throw new Error('クリップボードAPIが利用できません');
                 }
 
-                await navigator.clipboard.writeText(unescapedText);
+                await navigator.clipboard.writeText(text);
                 
                 const originalText = buttonElement.textContent;
                 buttonElement.textContent = '✓ 完了';
@@ -582,11 +900,12 @@
                 }, 1500);
                 
                 showToast('クリップボードにコピーしました', 'success');
+                return true;
                 
             } catch (error) {
                 console.error('コピーエラー:', error);
                 showToast('コピーに失敗しました', 'error');
-                fallbackCopyToClipboard(unescapeHtml(text));
+                return fallbackCopyToClipboard(text);
             }
         }
 
@@ -603,11 +922,13 @@
             try {
                 document.execCommand('copy');
                 showToast('テキストを選択しました', 'success');
+                return true;
             } catch (err) {
                 showToast('コピー機能が利用できません', 'error');
+                return false;
+            } finally {
+                document.body.removeChild(textArea);
             }
-            
-            document.body.removeChild(textArea);
         }
 
         // トースト通知の表示
@@ -634,18 +955,6 @@
             }
         }
 
-        // HTMLエスケープ/アンエスケープ
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function unescapeHtml(html) {
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            return div.textContent || div.innerText || '';
-        }
     </script>
 </body>
 </html>

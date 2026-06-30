@@ -158,6 +158,75 @@
             color: #ffffff;
         }
 
+        .edit-add-panel {
+            max-width: 600px;
+            margin: 12px auto 0;
+            padding: 16px 20px;
+            background: #f8f8f8;
+            border-left: 4px solid #4caf50;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+        }
+
+        .edit-add-title {
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .edit-field {
+            width: 100%;
+            min-height: 44px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #c8d8c8;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #333333;
+            font-size: 1em;
+        }
+
+        .edit-textarea {
+            min-height: 96px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .edit-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .edit-save-btn,
+        .edit-add-btn,
+        .edit-delete-btn {
+            min-height: 44px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #4caf50;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .edit-save-btn {
+            background: #2e7d32;
+        }
+
+        .edit-delete-btn {
+            background: #d32f2f;
+        }
+
+        .edit-controls {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 10px;
+            align-items: center;
+        }
+
         .template-label {
             font-weight: bold;
             color: #2e7d32;
@@ -188,6 +257,7 @@
             margin-bottom: 15px;
             padding: 20px;
             border-left: 4px solid #4caf50;
+            scroll-margin-bottom: 120px;
         }
 
         .template-content {
@@ -270,6 +340,7 @@
             opacity: 0;
             transition: opacity 0.3s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
         }
 
         .toast.show {
@@ -373,6 +444,12 @@
             .mode-actions {
                 padding: 0 15px;
             }
+
+            .edit-add-panel {
+                margin-left: 15px;
+                margin-right: 15px;
+                padding: 14px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -396,6 +473,18 @@
             }
 
             .copy-btn {
+                width: 100%;
+            }
+
+            .edit-row,
+            .edit-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .edit-save-btn,
+            .edit-add-btn,
+            .edit-delete-btn,
+            .favorite-btn {
                 width: 100%;
             }
         }
@@ -422,6 +511,16 @@
     <div class="mode-actions">
         <button class="mode-toggle-btn" id="modeToggleBtn" type="button">編集モード</button>
     </div>
+
+    <section class="edit-add-panel hidden" id="editAddPanel" aria-label="定型文追加">
+        <div class="edit-add-title">定型文を追加</div>
+        <input class="edit-field" id="newTemplateLabel" type="text" placeholder="表示名（未入力なら本文から自動作成）">
+        <textarea class="edit-field edit-textarea" id="newTemplateText" placeholder="定型文本文"></textarea>
+        <div class="edit-row">
+            <select class="edit-field" id="newTemplateCategory"></select>
+            <button class="edit-add-btn" id="addTemplateBtn" type="button">追加</button>
+        </div>
+    </section>
 
     <div class="templates-container" id="templatesContainer">
         <div class="loading" id="loading">定型文を読み込み中...</div>
@@ -471,6 +570,11 @@
             const modeToggleBtn = document.getElementById('modeToggleBtn');
             if (modeToggleBtn) {
                 modeToggleBtn.addEventListener('click', toggleEditMode);
+            }
+
+            const addTemplateBtn = document.getElementById('addTemplateBtn');
+            if (addTemplateBtn) {
+                addTemplateBtn.addEventListener('click', addTemplate);
             }
 
             loadTemplates();
@@ -570,6 +674,7 @@
             try {
                 renderCategoryButtons();
                 renderQuickCopy();
+                renderAddTemplateForm();
                 renderTemplates();
                 
                 // loading要素の存在確認
@@ -770,6 +875,39 @@
 
             btn.textContent = isEditMode ? '通常モード' : '編集モード';
             btn.classList.toggle('active', isEditMode);
+
+            const addPanel = document.getElementById('editAddPanel');
+            if (addPanel) {
+                addPanel.classList.toggle('hidden', !isEditMode);
+            }
+        }
+
+        function getEditableCategories() {
+            return Object.keys(categoryStyles).filter(categoryId => categoryId !== 'all');
+        }
+
+        function renderCategorySelect(selectElement, selectedCategory) {
+            selectElement.innerHTML = '';
+
+            getEditableCategories().forEach(categoryId => {
+                const option = document.createElement('option');
+                option.value = categoryId;
+                option.textContent = categoryNames[categoryId] || categoryId;
+                option.selected = categoryId === selectedCategory;
+                selectElement.appendChild(option);
+            });
+        }
+
+        function renderAddTemplateForm() {
+            const select = document.getElementById('newTemplateCategory');
+            if (!select) {
+                return;
+            }
+
+            const selectedCategory = currentCategory !== 'all'
+                ? currentCategory
+                : 'category-1';
+            renderCategorySelect(select, selectedCategory);
         }
 
         // 定型文リストの描画
@@ -793,12 +931,67 @@
 
                 const item = document.createElement('div');
                 item.className = `template-item ${styleConfig ? styleConfig.borderClass : 'border-all'}`;
+                item.dataset.id = template.id;
 
                 if (isEditMode) {
-                    const label = document.createElement('div');
-                    label.className = 'template-label';
-                    label.textContent = template.label || createLabel(template.text);
-                    item.appendChild(label);
+                    const labelInput = document.createElement('input');
+                    labelInput.className = 'edit-field';
+                    labelInput.type = 'text';
+                    labelInput.value = template.label || createLabel(template.text);
+                    labelInput.placeholder = '表示名';
+
+                    const textArea = document.createElement('textarea');
+                    textArea.className = 'edit-field edit-textarea';
+                    textArea.value = template.text;
+                    textArea.placeholder = '定型文本文';
+
+                    const categorySelect = document.createElement('select');
+                    categorySelect.className = 'edit-field';
+                    renderCategorySelect(categorySelect, template.category);
+
+                    const saveButton = document.createElement('button');
+                    saveButton.className = 'edit-save-btn';
+                    saveButton.type = 'button';
+                    saveButton.textContent = '保存';
+                    saveButton.addEventListener('click', function() {
+                        updateTemplate(
+                            template.id,
+                            labelInput.value,
+                            textArea.value,
+                            categorySelect.value
+                        );
+                    });
+
+                    const favoriteButton = document.createElement('button');
+                    favoriteButton.className = `favorite-btn${template.favorite ? ' active' : ''}`;
+                    favoriteButton.type = 'button';
+                    favoriteButton.dataset.id = template.id;
+                    favoriteButton.textContent = template.favorite ? 'お気に入り中' : 'お気に入り';
+                    favoriteButton.addEventListener('click', function() {
+                        toggleFavorite(this.dataset.id);
+                    });
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'edit-delete-btn';
+                    deleteButton.type = 'button';
+                    deleteButton.dataset.id = template.id;
+                    deleteButton.textContent = '削除';
+                    deleteButton.addEventListener('click', function() {
+                        deleteTemplate(this.dataset.id);
+                    });
+
+                    const editControls = document.createElement('div');
+                    editControls.className = 'edit-controls';
+                    editControls.appendChild(categorySelect);
+                    editControls.appendChild(saveButton);
+                    editControls.appendChild(favoriteButton);
+                    editControls.appendChild(deleteButton);
+
+                    item.appendChild(labelInput);
+                    item.appendChild(textArea);
+                    item.appendChild(editControls);
+                    container.appendChild(item);
+                    return;
                 }
 
                 const content = document.createElement('div');
@@ -827,24 +1020,111 @@
 
                 actions.appendChild(category);
 
-                if (isEditMode) {
-                    const favoriteButton = document.createElement('button');
-                    favoriteButton.className = `favorite-btn${template.favorite ? ' active' : ''}`;
-                    favoriteButton.type = 'button';
-                    favoriteButton.dataset.id = template.id;
-                    favoriteButton.textContent = template.favorite ? 'お気に入り中' : 'お気に入り';
-                    favoriteButton.addEventListener('click', function() {
-                        toggleFavorite(this.dataset.id);
-                    });
-                    actions.appendChild(favoriteButton);
-                } else {
-                    actions.appendChild(button);
-                }
+                actions.appendChild(button);
 
                 item.appendChild(content);
                 item.appendChild(actions);
                 container.appendChild(item);
             });
+        }
+
+        function createTemplateId() {
+            return `tpl-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        }
+
+        function addTemplate() {
+            const labelInput = document.getElementById('newTemplateLabel');
+            const textInput = document.getElementById('newTemplateText');
+            const categorySelect = document.getElementById('newTemplateCategory');
+
+            const text = textInput ? textInput.value.trim() : '';
+            if (!text) {
+                showToast('本文を入力してください', 'error');
+                return;
+            }
+
+            const label = labelInput && labelInput.value.trim()
+                ? labelInput.value.trim()
+                : createLabel(text);
+            const category = categorySelect && categorySelect.value
+                ? categorySelect.value
+                : 'category-1';
+            const maxSortOrder = templates.reduce(
+                (max, template) => Math.max(max, Number(template.sortOrder) || 0),
+                0
+            );
+
+            templates.push({
+                id: createTemplateId(),
+                category,
+                label,
+                text,
+                favorite: false,
+                sortOrder: maxSortOrder + 10,
+                usageCount: 0,
+                updatedAt: new Date().toISOString()
+            });
+
+            if (labelInput) {
+                labelInput.value = '';
+            }
+            if (textInput) {
+                textInput.value = '';
+            }
+
+            saveTemplateData();
+            renderCategoryButtons();
+            renderAddTemplateForm();
+            renderQuickCopy();
+            renderTemplates();
+            showToast('定型文を追加しました', 'success');
+        }
+
+        function updateTemplate(templateId, labelValue, textValue, categoryValue) {
+            const template = templates.find(t => t.id === templateId);
+            if (!template) {
+                showToast('定型文が見つかりません', 'error');
+                return;
+            }
+
+            const text = String(textValue || '').trim();
+            if (!text) {
+                showToast('本文を入力してください', 'error');
+                return;
+            }
+
+            template.label = String(labelValue || '').trim() || createLabel(text);
+            template.text = text;
+            template.category = categoryValue || 'category-1';
+            template.updatedAt = new Date().toISOString();
+
+            saveTemplateData();
+            renderCategoryButtons();
+            renderAddTemplateForm();
+            renderQuickCopy();
+            renderTemplates();
+            showToast('定型文を保存しました', 'success');
+        }
+
+        function deleteTemplate(templateId) {
+            const template = templates.find(t => t.id === templateId);
+            if (!template) {
+                showToast('定型文が見つかりません', 'error');
+                return;
+            }
+
+            const label = template.label || createLabel(template.text);
+            if (!confirm(`「${label}」を削除しますか？`)) {
+                return;
+            }
+
+            templates = templates.filter(t => t.id !== templateId);
+            saveTemplateData();
+            renderCategoryButtons();
+            renderAddTemplateForm();
+            renderQuickCopy();
+            renderTemplates();
+            showToast('定型文を削除しました', 'success');
         }
 
         function toggleFavorite(templateId) {

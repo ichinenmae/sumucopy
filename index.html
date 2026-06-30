@@ -174,6 +174,44 @@
             margin-bottom: 10px;
         }
 
+        .edit-manage-panel {
+            max-width: 600px;
+            margin: 12px auto 0;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 1px solid #d8e6d8;
+            border-left: 4px solid #2e7d32;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-manage-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .edit-manage-btn {
+            min-height: 44px;
+            padding: 10px;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #2e7d32;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .edit-manage-btn.primary {
+            background: #4caf50;
+            color: #ffffff;
+        }
+
+        .edit-manage-btn.danger {
+            border-color: #d32f2f;
+            color: #d32f2f;
+        }
+
         .edit-field {
             width: 100%;
             min-height: 44px;
@@ -450,6 +488,12 @@
                 margin-right: 15px;
                 padding: 14px;
             }
+
+            .edit-manage-panel {
+                margin-left: 15px;
+                margin-right: 15px;
+                padding: 14px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -480,6 +524,7 @@
             }
 
             .edit-row,
+            .edit-manage-actions,
             .edit-controls {
                 grid-template-columns: 1fr;
             }
@@ -525,6 +570,16 @@
         </div>
     </section>
 
+    <section class="edit-manage-panel hidden" id="editManagePanel" aria-label="定型文データ管理">
+        <div class="edit-add-title">データ管理</div>
+        <div class="edit-manage-actions">
+            <button class="edit-manage-btn primary" id="exportTemplatesBtn" type="button">JSON保存</button>
+            <button class="edit-manage-btn" id="importTemplatesBtn" type="button">JSON読込</button>
+            <button class="edit-manage-btn danger" id="resetTemplatesBtn" type="button">初期化</button>
+        </div>
+        <input id="importTemplatesFile" type="file" accept="application/json,.json" class="hidden">
+    </section>
+
     <div class="templates-container" id="templatesContainer">
         <div class="loading" id="loading">定型文を読み込み中...</div>
     </div>
@@ -542,6 +597,7 @@
         let templates = [];
         let currentCategory = 'all';
         let isEditMode = false;
+        let initialTemplateData = null;
 
         // カテゴリ設定（デフォルト値）
         const defaultCategoryNames = {
@@ -578,6 +634,26 @@
             const addTemplateBtn = document.getElementById('addTemplateBtn');
             if (addTemplateBtn) {
                 addTemplateBtn.addEventListener('click', addTemplate);
+            }
+
+            const exportTemplatesBtn = document.getElementById('exportTemplatesBtn');
+            if (exportTemplatesBtn) {
+                exportTemplatesBtn.addEventListener('click', exportTemplatesJson);
+            }
+
+            const importTemplatesBtn = document.getElementById('importTemplatesBtn');
+            if (importTemplatesBtn) {
+                importTemplatesBtn.addEventListener('click', openImportTemplatesFile);
+            }
+
+            const importTemplatesFile = document.getElementById('importTemplatesFile');
+            if (importTemplatesFile) {
+                importTemplatesFile.addEventListener('change', importTemplatesJson);
+            }
+
+            const resetTemplatesBtn = document.getElementById('resetTemplatesBtn');
+            if (resetTemplatesBtn) {
+                resetTemplatesBtn.addEventListener('click', resetTemplatesToInitial);
             }
 
             loadTemplates();
@@ -663,6 +739,7 @@
             }
             
             const initialData = normalizeTemplateData(jsonData);
+            initialTemplateData = cloneTemplateData(initialData);
             const storedData = loadStoredTemplateData();
 
             if (storedData) {
@@ -741,6 +818,10 @@
             return compact.length > 14
                 ? compact.slice(0, 14) + '…'
                 : compact;
+        }
+
+        function cloneTemplateData(data) {
+            return JSON.parse(JSON.stringify(data));
         }
 
         function loadStoredTemplateData() {
@@ -882,6 +963,11 @@
             const addPanel = document.getElementById('editAddPanel');
             if (addPanel) {
                 addPanel.classList.toggle('hidden', !isEditMode);
+            }
+
+            const managePanel = document.getElementById('editManagePanel');
+            if (managePanel) {
+                managePanel.classList.toggle('hidden', !isEditMode);
             }
         }
 
@@ -1128,6 +1214,94 @@
             renderQuickCopy();
             renderTemplates();
             showToast('定型文を削除しました', 'success');
+        }
+
+        function getCurrentTemplateData() {
+            return {
+                version: 2,
+                categoryNames,
+                templates
+            };
+        }
+
+        function applyTemplateData(data) {
+            const normalized = normalizeTemplateData(data);
+            if (!normalized.templates.length) {
+                throw new Error('定型文がありません');
+            }
+
+            categoryNames = normalized.categoryNames;
+            templates = normalized.templates;
+            currentCategory = 'all';
+            saveTemplateData();
+            renderCategoryButtons();
+            renderAddTemplateForm();
+            renderQuickCopy();
+            renderTemplates();
+        }
+
+        function exportTemplatesJson() {
+            const data = JSON.stringify(getCurrentTemplateData(), null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const dateText = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+            link.href = url;
+            link.download = `sumucopy-templates-${dateText}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('JSONを保存しました', 'success');
+        }
+
+        function openImportTemplatesFile() {
+            const input = document.getElementById('importTemplatesFile');
+            if (!input) {
+                showToast('ファイル選択を開けませんでした', 'error');
+                return;
+            }
+
+            input.value = '';
+            input.click();
+        }
+
+        function importTemplatesJson(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                try {
+                    const parsed = JSON.parse(String(reader.result || ''));
+                    applyTemplateData(parsed);
+                    showToast('JSONを読み込みました', 'success');
+                } catch (error) {
+                    console.warn('JSONインポートに失敗:', error.message);
+                    showToast('JSONを読み込めませんでした', 'error');
+                }
+            };
+            reader.onerror = function() {
+                showToast('ファイルを読み込めませんでした', 'error');
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function resetTemplatesToInitial() {
+            if (!initialTemplateData) {
+                showToast('初期データが見つかりません', 'error');
+                return;
+            }
+
+            if (!confirm('定型文を初期状態に戻しますか？現在の編集内容は消えます。')) {
+                return;
+            }
+
+            applyTemplateData(initialTemplateData);
+            showToast('初期状態に戻しました', 'success');
         }
 
         function toggleFavorite(templateId) {

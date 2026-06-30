@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4caf50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="スム配達">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="apple-touch-icon" href="../sumureco/smrc-icon.png">
     <title>スムコピ SMOOTH COPY 配達定型文アプリ</title>
     <style>
         * {
@@ -593,6 +598,14 @@
     </nav>
 
     <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('../sw.js', {
+                    scope: '/'
+                }).catch(() => {});
+            });
+        }
+
         const STORAGE_KEY = 'sumucopy.templates.v2';
         let templates = [];
         let currentCategory = 'all';

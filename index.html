@@ -95,6 +95,14 @@
         .btn-category-6 { background-color: #9C27B0; }
         .btn-category-6.inactive { background-color: #ce93d8; }
 
+        .btn-manual {
+            background-color: #2e7d32;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* 定型文コンテナ */
         .templates-container {
             max-width: 600px;
@@ -907,6 +915,12 @@
                 
                 container.appendChild(button);
             });
+
+            const manualLink = document.createElement('a');
+            manualLink.className = 'category-btn btn-manual';
+            manualLink.href = './manual.html';
+            manualLink.textContent = '使い方';
+            container.appendChild(manualLink);
         }
 
         // カテゴリ選択
@@ -956,6 +970,7 @@
 
                 container.appendChild(button);
             });
+
         }
 
         function toggleEditMode() {

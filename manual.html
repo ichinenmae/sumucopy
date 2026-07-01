@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スムコピ 使い方</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;background:#f7faf7;color:#333;line-height:1.8}
+header{background:#2e7d32;color:#fff;padding:24px 18px}
+main{max-width:920px;margin:0 auto;padding:18px}
+h1{font-size:26px;line-height:1.35;margin:0 0 8px}
+h2{font-size:22px;border-left:6px solid #4caf50;padding-left:10px;margin:34px 0 14px}
+h3{font-size:18px;margin:24px 0 8px}
+p{margin:8px 0}
+a{color:#2e7d32;font-weight:bold}
+.lead{font-size:16px;margin:0;color:#eef8ee}
+.nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.nav a{background:#fff;color:#2e7d32;text-decoration:none;border-radius:6px;padding:8px 12px}
+.card,.scene{background:#fff;border:1px solid #dce8dc;border-radius:8px;padding:16px;margin:14px 0;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.shot{margin:14px 0 6px}
+.shot img{width:100%;max-width:390px;border:1px solid #d7dfd7;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.12);display:block}
+.wide img{max-width:720px}
+.caption{font-size:14px;color:#666}
+ol,ul{padding-left:1.4em}
+li{margin:6px 0}
+.note{background:#fff8e1;border-left:6px solid #f9a825;padding:12px 14px;border-radius:6px}
+.app-link{display:inline-block;background:#4caf50;color:#fff;text-decoration:none;border-radius:8px;padding:12px 18px;margin-top:10px}
+@media(max-width:640px){main{padding:14px}h1{font-size:23px}.shot img{max-width:100%}}
+</style>
+</head>
+<body>
+<header>
+<h1>スムコピ 使い方</h1>
+<p class="lead">配達中によく送る文章を、押すだけでコピーするための画面です。</p>
+<nav class="nav">
+<a href="#before">配達開始前</a>
+<a href="#working">配達中</a>
+<a href="#after">配達完了後</a>
+<a href="#edit">文章の追加・編集</a>
+</nav>
+</header>
+
+<main>
+<div class="card">
+<h2>スムコピでできること</h2>
+<p>お客様へ送る文章を探して「コピー」を押すと、文章がスマホにコピーされます。あとは配達アプリのメッセージ欄に貼り付けて送ります。</p>
+<p>到着連絡、遅延連絡、置き配、配達完了など、配達の場面ごとに文章を選べます。</p>
+<a class="app-link" href="index.html">スムコピを開く</a>
+</div>
+
+<section id="before" class="scene">
+<h2>配達開始前：使う文章を確認する</h2>
+<p>稼働前に、よく使う文章が入っているか見ておくと、配達中にあわてず使えます。</p>
+<div class="shot"><img src="manual-assets/sumucopy-01-home.png" alt="スムコピの最初の画面"></div>
+<ul>
+<li>上の色つきボタンで、文章の種類を切り替えます。</li>
+<li>「使い方」も上のメニューから開けます。</li>
+<li>「クイックコピー」は、よく使う文章をすぐ押せる場所です。</li>
+<li>下の「定型文」「ペース」で、スムコピと配達ペースチェッカーを切り替えられます。</li>
+</ul>
+</section>
+
+<section id="working" class="scene">
+<h2>配達中：必要な文章をコピーする</h2>
+<p>配達中は、状況に合う種類を押して、使いたい文章の「コピー」を押します。</p>
+<div class="shot"><img src="manual-assets/sumucopy-02-category.png" alt="種類を選んだスムコピ画面"></div>
+<ol>
+<li>例：「到着連絡」「遅延連絡」「置き配」など、上の種類を選びます。</li>
+<li>送りたい文章を確認します。</li>
+<li>「コピー」を押します。</li>
+<li>配達アプリに戻り、メッセージ欄を長押しして貼り付けます。</li>
+</ol>
+<div class="shot"><img src="manual-assets/sumucopy-03-copied.png" alt="コピー完了の表示"></div>
+<p class="caption">コピーできると、ボタンや通知で完了がわかります。</p>
+<p class="note">コピーしただけでは相手に送られません。必ず配達アプリに貼り付けて、内容を確認してから送信してください。</p>
+<p>今の売上や件数を見たいときは、画面下の「ペース」を押すと配達ペースチェッカーへ移動できます。定型文に戻るときは、ペース画面下の「定型文」を押します。</p>
+<div class="shot"><img src="manual-assets/sumucopy-switch-01-copy.png" alt="スムコピ画面下の定型文とペースの切り替えボタン"></div>
+<p class="caption">スムコピ画面では「定型文」が選ばれています。「ペース」を押すと配達ペースチェッカーへ移動します。</p>
+<div class="shot"><img src="manual-assets/sumucopy-switch-02-pace.png" alt="配達ペースチェッカー画面下の定型文とペースの切り替えボタン"></div>
+<p class="caption">配達ペースチェッカー画面では「ペース」が選ばれています。「定型文」を押すとスムコピへ戻ります。</p>
+</section>
+
+<section id="after" class="scene">
+<h2>配達完了後：最後の連絡を送る</h2>
+<p>置き配したあとや、最後に連絡が必要な時は、「配達完了」の文章を使うと短時間で丁寧な連絡ができます。</p>
+<ul>
+<li>置き配の場合は、置いた場所がわかる文章に直してから送ると安心です。</li>
+<li>文章の内容が今の状況に合っているか、送信前に一度見直してください。</li>
+</ul>
+</section>
+
+<section id="edit" class="scene">
+<h2>文章の追加・編集</h2>
+<p>自分がよく使う文章に変えたいときは、「編集モード」を押します。</p>
+<div class="shot wide"><img src="manual-assets/sumucopy-04-edit.png" alt="スムコピの編集モード画面"></div>
+<ol>
+<li>「編集モード」を押します。</li>
+<li>新しい文章を追加する場合は、表示名と本文を入れて「追加」を押します。</li>
+<li>すでにある文章を変える場合は、本文を書き直して「保存」を押します。</li>
+<li>よく使う文章は「お気に入り」にすると、クイックコピーに出しやすくなります。</li>
+<li>不要な文章は「削除」を押します。</li>
+</ol>
+<p class="note">初期化を押すと、追加や編集した文章が戻る場合があります。押す前に必要な文章が残っているか確認してください。</p>
+<h3>データ管理</h3>
+<p>編集モードでは、定型文データを保存したり、前に保存したデータを読み込んだりできます。</p>
+<div class="shot"><img src="manual-assets/sumucopy-data-management.png" alt="スムコピのデータ管理ボタン"></div>
+<ul>
+<li>「JSON保存」は、今の定型文データをファイルとして保存します。機種変更やバックアップ用です。</li>
+<li>「JSON読込」は、保存しておいた定型文データを読み込みます。</li>
+<li>「初期化」は、定型文を最初の状態に戻します。自分で追加・編集した内容が消える場合があります。</li>
+</ul>
+</section>
+</main>
+</body>
+</html>
